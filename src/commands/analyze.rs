@@ -21,8 +21,15 @@ pub fn run(brutal: bool, date: Option<String>) -> Result<(), Box<dyn std::error:
     let data = get_data_dir();
 
     // ── Step 1: Load data ────────────────────────────────────────────────────
-    let journal: Option<JournalEntry> =
-        read_json(&data.join("journal").join(format!("{}.json", date_str)));
+    let journal: Option<JournalEntry> = {
+        let p = data.join("journal").join(format!("{}.json", date_str));
+        std::fs::read_to_string(&p).ok().and_then(|c| {
+            serde_json::from_str::<Vec<JournalEntry>>(&c)
+                .ok()
+                .and_then(|mut v| v.pop())
+                .or_else(|| serde_json::from_str::<JournalEntry>(&c).ok())
+        })
+    };
     let tasks: Option<Vec<Task>> =
         read_json(&data.join("tasks").join(format!("{}.json", date_str)));
     let sleep: Option<SleepRecord> =

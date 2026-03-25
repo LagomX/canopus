@@ -1,8 +1,9 @@
 use crate::models::journal::JournalEntry;
-use crate::store::{get_data_dir, get_today_str, is_initialized, read_json, write_json};
+use crate::store::{get_data_dir, get_today_str, is_initialized, write_json};
 use chrono::Utc;
 use colored::Colorize;
-use std::io::{self, BufRead, Write};
+use std::fs;
+use std::io::{self, BufRead};
 
 /// Records a journal entry. Uses interactive stdin input when `text` is None.
 pub fn run(
@@ -20,18 +21,6 @@ pub fn run(
     let path = get_data_dir()
         .join("journal")
         .join(format!("{}.json", date_str));
-
-    // Prompt before overwriting an existing entry
-    if read_json::<JournalEntry>(&path).is_some() {
-        println!(
-            "{}",
-            format!("A journal entry already exists for {}.", date_str).yellow()
-        );
-        if !confirm("Overwrite?") {
-            println!("Aborted.");
-            return Ok(());
-        }
-    }
 
     // Validate optional scores
     if let Some(m) = mood {
@@ -67,7 +56,15 @@ pub fn run(
         intentions: vec![],
     };
 
-    write_json(&path, &entry)?;
+    // Read existing entries (array format; fall back to single-object for old files)
+    let raw = fs::read_to_string(&path).unwrap_or_default();
+    let mut entries: Vec<JournalEntry> = serde_json::from_str::<Vec<JournalEntry>>(&raw)
+        .ok()
+        .or_else(|| serde_json::from_str::<JournalEntry>(&raw).ok().map(|e| vec![e]))
+        .unwrap_or_default();
+
+    entries.push(entry);
+    write_json(&path, &entries)?;
     println!(
         "{}",
         format!("Journal entry saved for {}.", date_str).green().bold()
@@ -107,11 +104,3 @@ fn read_multiline_input() -> String {
     lines.join("\n")
 }
 
-/// Prints a yes/no prompt and returns true if the user typed "y".
-fn confirm(prompt: &str) -> bool {
-    print!("{} [y/N]: ", prompt);
-    io::stdout().flush().ok();
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).ok();
-    input.trim().eq_ignore_ascii_case("y")
-}

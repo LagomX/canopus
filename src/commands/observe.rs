@@ -56,8 +56,15 @@ pub fn run_auto(date: &str) -> Result<(), Box<dyn std::error::Error>> {
 fn generate(date: &str, source: ObservationSource) -> Result<(), Box<dyn std::error::Error>> {
     let data = get_data_dir();
 
-    let journal: Option<JournalEntry> =
-        read_json(&data.join("journal").join(format!("{}.json", date)));
+    let journal: Option<JournalEntry> = {
+        let p = data.join("journal").join(format!("{}.json", date));
+        fs::read_to_string(&p).ok().and_then(|c| {
+            serde_json::from_str::<Vec<JournalEntry>>(&c)
+                .ok()
+                .and_then(|mut v| v.pop())
+                .or_else(|| serde_json::from_str::<JournalEntry>(&c).ok())
+        })
+    };
     let tasks: Option<Vec<Task>> =
         read_json(&data.join("tasks").join(format!("{}.json", date)));
     let sleep: Option<SleepRecord> =

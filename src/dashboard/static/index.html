@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Canopus</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="page">
+    <header class="header">
+      <span class="header-title">Canopus</span>
+      <span class="header-date" id="today-date"></span>
+    </header>
+
+    <div class="sticky-top">
+      <div class="card compose-card">
+        <textarea
+          id="compose-input"
+          placeholder="今天在想什么？"
+          rows="1"
+        ></textarea>
+        <div class="compose-footer">
+          <span class="error-msg" id="error-msg"></span>
+          <button id="compose-btn" disabled class="btn-primary">记录</button>
+        </div>
+      </div>
+    </div>
+
+    <main id="timeline" class="timeline">
+      <div class="loading" id="loading">
+        <div class="loading-dots">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
+    </main>
+
+    <div class="empty-state" id="empty-state" style="display:none">
+      <div class="empty-icon">✏️</div>
+      <div class="empty-title">还没有记录</div>
+      <div class="empty-sub">写下今天的第一个想法</div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <section class="sleep-section">
+      <div class="section-header">睡眠</div>
+
+      <!-- Input card -->
+      <div class="sleep-input-card">
+        <div class="sleep-date-row">
+          <label>日期</label>
+          <input type="date" id="sleep-date">
+        </div>
+        <div class="sleep-time-row">
+          <div class="sleep-time-group">
+            <label>入睡时间</label>
+            <input type="time" id="sleep-bedtime" value="23:00">
+          </div>
+          <div class="sleep-time-group">
+            <label>起床时间</label>
+            <input type="time" id="sleep-waketime" value="07:00">
+          </div>
+        </div>
+        <div class="sleep-submit-row">
+          <span class="sleep-saved" id="sleep-saved"></span>
+          <button id="sleep-btn" class="btn-primary">记录睡眠</button>
+        </div>
+      </div>
+
+      <!-- Chart card -->
+      <div class="sleep-chart-card">
+        <div class="chart-header">
+          <div class="chart-label-sm">SLEEP DURATION</div>
+          <div class="chart-avg" id="sleep-avg">— hr — min</div>
+        </div>
+        <div class="chart-layout">
+          <div class="y-axis" id="y-axis"></div>
+          <div class="bars-area" id="bars-area">
+            <div class="grid-container" id="grid-container"></div>
+          </div>
+        </div>
+        <div class="chart-hint" id="sleep-hint"></div>
+      </div>
+    </section>
+
+    <div id="sleep-popover" class="sleep-popover" style="display:none"></div>
+  </div>
+  <script src="/app.js"></script>
+</body>
+</html>
