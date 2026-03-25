@@ -6,8 +6,7 @@ pub struct JournalEntry {
     pub timestamp: String,
     pub date: String,
     pub content: String,
-    pub mood_score: Option<u8>,
-    pub energy_score: Option<u8>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub mood: Option<String>,
     pub tags: Vec<String>,
-    pub intentions: Vec<String>,
 }

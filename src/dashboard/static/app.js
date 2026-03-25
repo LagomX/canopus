@@ -24,7 +24,7 @@ let errorTimer = null;
 
 input.addEventListener('input', function () {
   this.style.height = 'auto';
-  this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+  this.style.height = Math.min(this.scrollHeight, 400) + 'px';
   btn.disabled = this.value.trim() === '';
 });
 
@@ -36,6 +36,26 @@ input.addEventListener('keydown', function (e) {
 });
 
 btn.addEventListener('click', submitEntry);
+
+// ── Compose meta (mood / energy / tags / intentions) ──────────────────────────
+
+let selectedMood = '';
+
+document.querySelectorAll('.mood-btn').forEach(btn => {
+  btn.addEventListener('click', function () {
+    const v = this.dataset.v;
+    selectedMood = (selectedMood === v) ? '' : v;
+    document.querySelectorAll('.mood-btn').forEach(b =>
+      b.classList.toggle('selected', b.dataset.v === selectedMood)
+    );
+  });
+});
+
+function resetComposeMeta() {
+  selectedMood = '';
+  document.querySelectorAll('.mood-btn').forEach(b => b.classList.remove('selected'));
+  document.getElementById('compose-tags').value = '';
+}
 
 // ── Load & render ─────────────────────────────────────────────────────────────
 
@@ -101,7 +121,7 @@ function makeEntryEl(entry) {
 
   const time = document.createElement('div');
   time.className = 'entry-time';
-  time.textContent = timeStr(entry.timestamp);
+  time.textContent = timeStr(entry.timestamp) + (entry.mood ? '  ' + entry.mood : '');
 
   const content = document.createElement('div');
   content.className = 'entry-content';
@@ -127,10 +147,17 @@ async function submitEntry() {
   btn.disabled = true;
 
   try {
+    const tagsRaw = document.getElementById('compose-tags').value.trim();
+    const payload = {
+      content,
+      mood: selectedMood || undefined,
+      tags: tagsRaw ? tagsRaw.split(/\s+/) : undefined,
+    };
+
     const res = await fetch(API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ content }),
+      body: JSON.stringify(payload),
     });
 
     if (!res.ok) {
@@ -142,6 +169,7 @@ async function submitEntry() {
     input.value = '';
     input.style.height = '';
     btn.disabled = true;
+    resetComposeMeta();
 
     entries.unshift(entry);
     renderTimeline();
@@ -238,6 +266,20 @@ let popoverTimer   = null;
 })();
 
 document.getElementById('sleep-btn').addEventListener('click', submitSleep);
+
+// ── Quality score selector ─────────────────────────────────────────────────────
+
+let selectedQuality = 0;
+
+document.querySelectorAll('.star-btn').forEach(btn => {
+  btn.addEventListener('click', function () {
+    const v = parseInt(this.dataset.v, 10);
+    selectedQuality = (selectedQuality === v) ? 0 : v;  // toggle off if same
+    document.querySelectorAll('.star-btn').forEach(b => {
+      b.classList.toggle('selected', parseInt(b.dataset.v, 10) <= selectedQuality);
+    });
+  });
+});
 
 // ── Load & render ─────────────────────────────────────────────────────────────
 
@@ -421,6 +463,7 @@ async function submitSleep() {
         bedtime,
         wake_time: waketime,
         date: date || undefined,
+        quality_score: selectedQuality || undefined,
       }),
     });
 
@@ -437,6 +480,9 @@ async function submitSleep() {
     const savedEl = document.getElementById('sleep-saved');
     savedEl.textContent = '已记录 ✓';
     setTimeout(() => { savedEl.textContent = ''; }, 2000);
+
+    selectedQuality = 0;
+    document.querySelectorAll('.star-btn').forEach(b => b.classList.remove('selected'));
 
     await loadSleep();
   } catch (err) {

@@ -31,12 +31,9 @@ enum Commands {
         /// Date to record for, YYYY-MM-DD (defaults to today)
         #[arg(long)]
         date: Option<String>,
-        /// Mood score 1–10
+        /// Mood emoji: 😞 | 😐 | 🙂 | 😊
         #[arg(long)]
-        mood: Option<u8>,
-        /// Energy score 1–10
-        #[arg(long)]
-        energy: Option<u8>,
+        mood: Option<String>,
     },
     /// Manage daily tasks
     Task {
@@ -117,7 +114,7 @@ fn main() {
     let result = match cli.command {
         Commands::Init => init::run(),
         Commands::Status => status::run(),
-        Commands::Journal { text, date, mood, energy } => journal::run(text, date, mood, energy),
+        Commands::Journal { text, date, mood } => journal::run(text, date, mood),
         Commands::Task { action } => match action {
             TaskAction::Add { title, priority, domain } => task::run_add(title, priority, domain),
             TaskAction::List => task::run_list(),

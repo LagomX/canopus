@@ -54,13 +54,6 @@ body {
 
 /* ── Compose ──────────────────────────────────────────────────────────────── */
 
-.sticky-top {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  padding: 6px 0 4px;
-  background: var(--bg);
-}
 
 .card {
   background: var(--card);
@@ -88,6 +81,86 @@ body {
 #compose-input::placeholder {
   color: var(--text-secondary);
 }
+
+.compose-meta {
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.score-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.score-row-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.mood-emojis {
+  display: flex;
+  gap: 8px;
+}
+
+.mood-btn {
+  width: 36px;
+  height: 36px;
+  border: 2px solid transparent;
+  border-radius: 50%;
+  background: none;
+  font-size: 22px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.12s, transform 0.1s;
+  padding: 0;
+}
+
+.mood-btn:hover {
+  transform: scale(1.15);
+}
+
+.mood-btn.selected {
+  border-color: var(--primary);
+}
+
+.compose-field-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.compose-field-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.compose-field-input {
+  flex: 1;
+  background: var(--bg);
+  border: none;
+  border-radius: 8px;
+  padding: 7px 12px;
+  color: var(--text-primary);
+  font-family: var(--font);
+  font-size: 14px;
+  outline: none;
+}
+
+.compose-field-input::placeholder {
+  color: var(--text-secondary);
+}
+
 
 .compose-footer {
   display: flex;
@@ -345,6 +418,46 @@ body {
   width: 100%;
   outline: none;
   -webkit-appearance: none;
+}
+
+.sleep-quality-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.sleep-quality-row label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  white-space: nowrap;
+}
+
+.quality-stars {
+  display: flex;
+  gap: 6px;
+}
+
+.star-btn {
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid var(--divider);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text-secondary);
+  font-size: 14px;
+  font-family: var(--font);
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+
+.star-btn.selected {
+  background: var(--primary);
+  color: #fff;
+  border-color: var(--primary);
 }
 
 .sleep-submit-row {

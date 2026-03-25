@@ -13,13 +13,28 @@
       <span class="header-date" id="today-date"></span>
     </header>
 
-    <div class="sticky-top">
+    <div>
       <div class="card compose-card">
         <textarea
           id="compose-input"
           placeholder="今天在想什么？"
-          rows="1"
+          rows="3"
         ></textarea>
+        <div class="compose-meta" id="compose-meta">
+          <div class="score-row">
+            <span class="score-row-label">今天状态</span>
+            <div class="mood-emojis" id="mood-btns">
+              <button class="mood-btn" data-v="😞">😞</button>
+              <button class="mood-btn" data-v="😐">😐</button>
+              <button class="mood-btn" data-v="🙂">🙂</button>
+              <button class="mood-btn" data-v="😊">😊</button>
+            </div>
+          </div>
+          <div class="compose-field-row">
+            <span class="compose-field-label">标签</span>
+            <input class="compose-field-input" id="compose-tags" placeholder="空格分隔" type="text">
+          </div>
+        </div>
         <div class="compose-footer">
           <span class="error-msg" id="error-msg"></span>
           <button id="compose-btn" disabled class="btn-primary">记录</button>
@@ -60,6 +75,16 @@
           <div class="sleep-time-group">
             <label>起床时间</label>
             <input type="time" id="sleep-waketime" value="07:00">
+          </div>
+        </div>
+        <div class="sleep-quality-row">
+          <label>睡眠质量</label>
+          <div class="quality-stars" id="quality-stars">
+            <button class="star-btn" data-v="1">1</button>
+            <button class="star-btn" data-v="2">2</button>
+            <button class="star-btn" data-v="3">3</button>
+            <button class="star-btn" data-v="4">4</button>
+            <button class="star-btn" data-v="5">5</button>
           </div>
         </div>
         <div class="sleep-submit-row">

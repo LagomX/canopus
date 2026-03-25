@@ -223,22 +223,30 @@ fn system_for_level(level: u8, profile: Option<&str>) -> String {
         None => String::new(),
     };
 
+    let strict_rules = "\n\n严格禁止：\n\
+        - 任何形式的建议（「建议你...」「你可以尝试...」「你应该...」）\n\
+        - 结尾的总结或鼓励\n\
+        - 「希望...」「相信...」等情感表达\n\
+        - 提及心理咨询、专业人士\n\n\
+        输出必须在④根因结束后立即停止。不加任何收尾语句。";
+
     let base = match level {
         1 => format!(
             "你是 Canopus，一个认知观察系统。用中性、描述性的语气分析用户今天的行为模式。{}",
             profile_block
         ),
         3 => format!(
-            "你是 Canopus，一个认知对抗系统。用冷静但锋利的语气拆穿用户的自我叙述。\
-             找出回避机制，重构真实原因，不要软化结论。\
-             结合用户的背景和目标来判断行为的真实代价。{}",
-            profile_block
+            "你是 Canopus，一个认知对抗系统。\n\
+             你只做一件事：找出用户行为和叙述之间的矛盾，如实陈述。{strict}{profile}",
+            strict = strict_rules,
+            profile = profile_block
         ),
         _ => format!(
             "你是 Canopus，一个认知对抗系统。你的职责是找出用户行为和叙述之间的矛盾。\
              直接指出矛盾，不要安慰，不要验证用户的叙述，除非有数据支撑。\
-             结合用户的背景和目标来评估今天的行为是否与其声称的优先级一致。{}",
-            profile_block
+             结合用户的背景和目标来评估今天的行为是否与其声称的优先级一致。{strict}{profile}",
+            strict = strict_rules,
+            profile = profile_block
         ),
     };
     base
@@ -254,17 +262,12 @@ fn build_user_prompt(
     intensity: u8,
 ) -> String {
     // Journal
-    let (journal_content, mood_str, energy_str) = match journal {
+    let (journal_content, mood_str) = match journal {
         Some(j) => (
             j.content.clone(),
-            j.mood_score
-                .map(|m| m.to_string())
-                .unwrap_or_else(|| "?".to_string()),
-            j.energy_score
-                .map(|e| e.to_string())
-                .unwrap_or_else(|| "?".to_string()),
+            j.mood.clone().unwrap_or_else(|| "未记录".to_string()),
         ),
-        None => ("(无日记)".to_string(), "?".to_string(), "?".to_string()),
+        None => ("(无日记)".to_string(), "未记录".to_string()),
     };
 
     // Tasks
@@ -351,7 +354,22 @@ fn build_user_prompt(
 
     // Sleep
     let (sleep_hours_str, sleep_quality_str) = match sleep {
-        Some(s) => (format!("{:.1}", s.duration_hours), s.quality_score.to_string()),
+        Some(s) => {
+            eprintln!(
+                "{}",
+                format!(
+                    "[debug] sleep: duration={:.1}h quality={} bedtime={:?} wake={:?}",
+                    s.duration_hours, s.quality_score, s.bedtime, s.wake_time
+                )
+                .dimmed()
+            );
+            let quality = if s.quality_score == 0 {
+                "未记录".to_string()
+            } else {
+                s.quality_score.to_string()
+            };
+            (format!("{:.1}", s.duration_hours), quality)
+        }
         None => ("?".to_string(), "?".to_string()),
     };
 
@@ -360,7 +378,7 @@ fn build_user_prompt(
          \n\
          【日记】\n\
          {journal_content}\n\
-         情绪: {mood}/10  精力: {energy}/10\n\
+         情绪: {mood}\n\
          \n\
          【任务】\n\
          完成: {done}  跳过: {skipped}  未完成: {todo}\n\
@@ -385,7 +403,6 @@ fn build_user_prompt(
         date = date,
         journal_content = journal_content,
         mood = mood_str,
-        energy = energy_str,
         done = done_str,
         skipped = skipped_str,
         todo = todo_str,

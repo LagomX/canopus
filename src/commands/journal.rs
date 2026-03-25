@@ -9,8 +9,7 @@ use std::io::{self, BufRead};
 pub fn run(
     text: Option<String>,
     date: Option<String>,
-    mood: Option<u8>,
-    energy: Option<u8>,
+    mood: Option<String>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     if !is_initialized() {
         println!("{}", "Canopus not initialized. Run `canopus init` first.".red());
@@ -21,18 +20,6 @@ pub fn run(
     let path = get_data_dir()
         .join("journal")
         .join(format!("{}.json", date_str));
-
-    // Validate optional scores
-    if let Some(m) = mood {
-        if !(1..=10).contains(&m) {
-            return Err("Mood score must be between 1 and 10.".into());
-        }
-    }
-    if let Some(e) = energy {
-        if !(1..=10).contains(&e) {
-            return Err("Energy score must be between 1 and 10.".into());
-        }
-    }
 
     let content = match text {
         Some(t) => t,
@@ -50,10 +37,8 @@ pub fn run(
         timestamp: now.format("%Y-%m-%dT%H:%M:%SZ").to_string(),
         date: date_str.clone(),
         content,
-        mood_score: mood,
-        energy_score: energy,
+        mood,
         tags: vec![],
-        intentions: vec![],
     };
 
     // Read existing entries (array format; fall back to single-object for old files)

@@ -37,6 +37,8 @@ pub struct JournalQuery {
 #[derive(Deserialize)]
 pub struct PostBody {
     content: String,
+    mood: Option<String>,
+    tags: Option<Vec<String>>,
 }
 
 // ── GET /api/journal?days=7 ───────────────────────────────────────────────────
@@ -82,10 +84,8 @@ pub async fn post_journal(Json(body): Json<PostBody>) -> impl IntoResponse {
         timestamp,
         date: date_str.clone(),
         content: body.content.trim().to_string(),
-        mood_score: None,
-        energy_score: None,
-        tags: vec![],
-        intentions: vec![],
+        mood: body.mood,
+        tags: body.tags.unwrap_or_default(),
     };
 
     let data_dir = get_data_dir();
@@ -214,6 +214,7 @@ pub struct SleepPostBody {
     bedtime: String,
     wake_time: String,
     date: Option<String>,
+    quality_score: Option<u8>,
 }
 
 #[derive(Serialize)]
@@ -291,11 +292,13 @@ pub async fn post_sleep(Json(body): Json<SleepPostBody>) -> impl IntoResponse {
         .unwrap_or_else(|| Local::now().format("%Y-%m-%d").to_string());
     let date_compact = date_str.replace('-', "");
 
+    let quality = body.quality_score.unwrap_or(0).min(5);
+
     let record = SleepRecord {
         id: format!("sleep_{}", date_compact),
         date: date_str.clone(),
         duration_hours: duration,
-        quality_score: 0,
+        quality_score: quality,
         bedtime: Some(body.bedtime),
         wake_time: Some(body.wake_time),
         notes: None,

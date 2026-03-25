@@ -3,7 +3,7 @@ use crate::models::journal::JournalEntry;
 use crate::models::observation::{Observation, ObservationSource};
 use crate::models::sleep::SleepRecord;
 use crate::models::task::{Task, TaskStatus};
-use crate::store::{get_canopus_dir, get_data_dir, get_today_str, is_initialized, read_json};
+use crate::store::{ensure_dir, get_canopus_dir, get_data_dir, get_today_str, is_initialized, read_json};
 use chrono::Local;
 use colored::Colorize;
 use serde_json::{json, Value};
@@ -29,7 +29,9 @@ pub fn load_observations(date: &str) -> Vec<Observation> {
 }
 
 fn save_observations(date: &str, obs: &[Observation]) -> Result<(), Box<dyn std::error::Error>> {
-    let path = get_observations_dir().join(format!("{}.json", date));
+    let dir = get_observations_dir();
+    ensure_dir(&dir)?;
+    let path = dir.join(format!("{}.json", date));
     fs::write(&path, serde_json::to_string_pretty(obs)?)?;
     Ok(())
 }
@@ -130,13 +132,12 @@ fn build_prompt(
     sleep: &Option<SleepRecord>,
     screen: &Option<ScreenTimeRecord>,
 ) -> String {
-    let (journal_content, mood_str, energy_str) = match journal {
+    let (journal_content, mood_str) = match journal {
         Some(j) => (
             j.content.clone(),
-            j.mood_score.map(|m| m.to_string()).unwrap_or_else(|| "?".to_string()),
-            j.energy_score.map(|e| e.to_string()).unwrap_or_else(|| "?".to_string()),
+            j.mood.clone().unwrap_or_else(|| "未记录".to_string()),
         ),
-        None => ("(无日记)".to_string(), "?".to_string(), "?".to_string()),
+        None => ("(无日记)".to_string(), "未记录".to_string()),
     };
 
     let (done_str, skipped_str, todo_str, skipped_detail) = match tasks {
@@ -206,7 +207,14 @@ fn build_prompt(
     };
 
     let (sleep_hours, sleep_quality) = match sleep {
-        Some(s) => (format!("{:.1}", s.duration_hours), s.quality_score.to_string()),
+        Some(s) => {
+            let quality = if s.quality_score == 0 {
+                "未记录".to_string()
+            } else {
+                s.quality_score.to_string()
+            };
+            (format!("{:.1}", s.duration_hours), quality)
+        }
         None => ("?".to_string(), "?".to_string()),
     };
 
@@ -221,7 +229,7 @@ fn build_prompt(
     let user = format!(
         "日期：{date}\n\n\
          日记：{journal}\n\
-         情绪：{mood}/10  精力：{energy}/10\n\n\
+         情绪：{mood}\n\n\
          任务：完成 {done} 跳过 {skipped} 未完成 {todo}\n\
          跳过的任务：{skipped_detail}\n\n\
          屏幕时间：总 {total}分钟\n\
@@ -234,7 +242,6 @@ fn build_prompt(
         date = date,
         journal = journal_content,
         mood = mood_str,
-        energy = energy_str,
         done = done_str,
         skipped = skipped_str,
         todo = todo_str,
