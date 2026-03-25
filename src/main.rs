@@ -4,7 +4,7 @@ mod store;
 
 use clap::{Parser, Subcommand};
 use colored::Colorize;
-use commands::{analyze, attention, init, journal, sleep, status, task};
+use commands::{analyze, attention, init, journal, observe, principles, reflect, sleep, status, task};
 
 #[derive(Parser)]
 #[command(
@@ -62,6 +62,19 @@ enum Commands {
         /// Enter today's screen time interactively
         #[arg(long)]
         today: bool,
+    },
+    /// Generate raw observations from today's data
+    Observe {
+        /// Generate for a specific date (YYYY-MM-DD, defaults to today)
+        #[arg(long)]
+        date: Option<String>,
+    },
+    /// Reflect on past 7 days and find patterns
+    Reflect,
+    /// Manage principles (Ray Dalio state machine)
+    Principles {
+        #[command(subcommand)]
+        action: commands::principles::PrinciplesAction,
     },
     /// Run cognitive adversary analysis via local Ollama
     Analyze {
@@ -122,6 +135,9 @@ fn main() {
                 Ok(())
             }
         }
+        Commands::Observe { date } => observe::run(date),
+        Commands::Reflect => reflect::run(),
+        Commands::Principles { action } => principles::run(action),
         Commands::Analyze { brutal, date } => analyze::run(brutal, date),
     };
 

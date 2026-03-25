@@ -34,7 +34,7 @@ pub fn read_json<T: DeserializeOwned>(path: &PathBuf) -> Option<T> {
 }
 
 /// Serializes data as pretty-printed JSON and writes it to disk, creating parent dirs as needed.
-pub fn write_json<T: Serialize>(
+pub fn write_json<T: Serialize + ?Sized>(
     path: &PathBuf,
     data: &T,
 ) -> Result<(), Box<dyn std::error::Error>> {

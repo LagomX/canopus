@@ -22,6 +22,9 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     ensure_dir(&data_dir.join("tasks"))?;
     ensure_dir(&data_dir.join("sleep"))?;
     ensure_dir(&data_dir.join("attention"))?;
+    ensure_dir(&canopus_dir.join("principles"))?;
+    ensure_dir(&canopus_dir.join("observations"))?;
+    ensure_dir(&canopus_dir.join("reflections"))?;
 
     let config = json!({
         "version": "0.1.0",
