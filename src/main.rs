@@ -89,9 +89,9 @@ enum TaskAction {
     /// Add a new task for today
     Add {
         title: String,
-        /// Priority: high, medium, low (default: medium)
-        #[arg(long, default_value = "medium")]
-        priority: String,
+        /// Quadrant: q1 (urgent+important), q2 (important), q3 (urgent), q4 (other)
+        #[arg(long, default_value = "q2")]
+        quadrant: String,
         /// Optional domain / category
         #[arg(long)]
         domain: Option<String>,
@@ -116,7 +116,7 @@ fn main() {
         Commands::Status => status::run(),
         Commands::Journal { text, date, mood } => journal::run(text, date, mood),
         Commands::Task { action } => match action {
-            TaskAction::Add { title, priority, domain } => task::run_add(title, priority, domain),
+            TaskAction::Add { title, quadrant, domain } => task::run_add(title, quadrant, domain),
             TaskAction::List => task::run_list(),
             TaskAction::Done { id_or_index } => task::run_done(id_or_index),
             TaskAction::Skip { id_or_index, reason } => task::run_skip(id_or_index, reason),

@@ -25,6 +25,7 @@ pub fn run() -> Result<(), Box<dyn std::error::Error>> {
     ensure_dir(&canopus_dir.join("principles"))?;
     ensure_dir(&canopus_dir.join("observations"))?;
     ensure_dir(&canopus_dir.join("reflections"))?;
+    ensure_dir(&canopus_dir.join("reports"))?;
 
     let config = json!({
         "version": "0.1.0",

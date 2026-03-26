@@ -1,4 +1,4 @@
-use crate::models::task::{Priority, Task, TaskStatus};
+use crate::models::task::{Quadrant, Task, TaskStatus};
 use crate::store::{get_data_dir, get_today_str, is_initialized, read_json, write_json};
 use colored::Colorize;
 use std::path::PathBuf;
@@ -17,7 +17,6 @@ fn save_tasks(tasks: &[Task]) -> Result<(), Box<dyn std::error::Error>> {
     write_json(&tasks_path(), tasks)
 }
 
-/// Returns false and prints an error if ~/.canopus is not initialized.
 fn check_init() -> bool {
     if !is_initialized() {
         println!("{}", "Canopus not initialized. Run `canopus init` first.".red());
@@ -27,7 +26,6 @@ fn check_init() -> bool {
     }
 }
 
-/// Resolves a 1-based numeric index or an exact id string to a Vec index.
 fn resolve_task(tasks: &[Task], id_or_index: &str) -> Option<usize> {
     if let Ok(n) = id_or_index.parse::<usize>() {
         if n >= 1 && n <= tasks.len() {
@@ -37,20 +35,21 @@ fn resolve_task(tasks: &[Task], id_or_index: &str) -> Option<usize> {
     tasks.iter().position(|t| t.id == id_or_index)
 }
 
-/// Adds a new task to today's task file.
+/// Adds a new task for today.
+/// `quadrant_str` accepts: q1, q2, q3, q4, high, medium, low (default: q2)
 pub fn run_add(
     title: String,
-    priority_str: String,
+    quadrant_str: String,
     domain: Option<String>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     if !check_init() {
         return Ok(());
     }
 
-    let priority = Priority::from_str(&priority_str).ok_or_else(|| {
+    let quadrant = Quadrant::from_str(&quadrant_str).ok_or_else(|| {
         format!(
-            "Invalid priority '{}'. Use: high, medium, low",
-            priority_str
+            "Invalid quadrant '{}'. Use: q1, q2, q3, q4 (or high/medium/low)",
+            quadrant_str
         )
     })?;
 
@@ -64,7 +63,7 @@ pub fn run_add(
         date: today,
         title: title.clone(),
         status: TaskStatus::Todo,
-        priority,
+        quadrant,
         domain,
         skip_reason: None,
         notes: None,
@@ -76,7 +75,7 @@ pub fn run_add(
     Ok(())
 }
 
-/// Lists all tasks for today with status icons and priority labels.
+/// Lists all tasks for today.
 pub fn run_list() -> Result<(), Box<dyn std::error::Error>> {
     if !check_init() {
         return Ok(());
@@ -93,10 +92,11 @@ pub fn run_list() -> Result<(), Box<dyn std::error::Error>> {
 
     for (i, task) in tasks.iter().enumerate() {
         let icon = task.status.icon();
-        let priority_label = match task.priority {
-            Priority::High => "[H]".red().to_string(),
-            Priority::Medium => "[M]".yellow().to_string(),
-            Priority::Low => "[L]".dimmed().to_string(),
+        let quad_label = match task.quadrant {
+            Quadrant::Q1 => "[Q1]".red().to_string(),
+            Quadrant::Q2 => "[Q2]".blue().to_string(),
+            Quadrant::Q3 => "[Q3]".yellow().to_string(),
+            Quadrant::Q4 => "[Q4]".dimmed().to_string(),
         };
         let domain = task
             .domain
@@ -113,7 +113,7 @@ pub fn run_list() -> Result<(), Box<dyn std::error::Error>> {
             "  {}. {} {} {}{}{}",
             i + 1,
             icon,
-            priority_label,
+            quad_label,
             task.title,
             domain,
             skip_note,
@@ -148,7 +148,7 @@ pub fn run_done(id_or_index: String) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-/// Marks a task as skipped by 1-based index or exact id, with an optional reason.
+/// Marks a task as skipped by 1-based index or exact id.
 pub fn run_skip(
     id_or_index: String,
     reason: Option<String>,

@@ -1,7 +1,7 @@
 use crate::models::attention::ScreenTimeRecord;
 use crate::models::journal::JournalEntry;
 use crate::models::sleep::SleepRecord;
-use crate::models::task::{Priority, Task, TaskStatus};
+use crate::models::task::{Quadrant, Task, TaskStatus};
 use crate::store::{get_canopus_dir, get_data_dir, get_today_str, is_initialized, read_json};
 use colored::Colorize;
 use serde_json::{json, Value};
@@ -112,27 +112,27 @@ pub fn run(brutal: bool, date: Option<String>) -> Result<(), Box<dyn std::error:
 
 // ── Score component helpers ──────────────────────────────────────────────────
 
-/// Ratio of skipped/todo high-priority tasks to all high-priority tasks.
+/// Ratio of skipped/todo Q1 tasks to all Q1 tasks.
 fn compute_task_gap(tasks: Option<&[Task]>) -> f64 {
     let tasks = match tasks {
         Some(t) => t,
         None => return 0.5,
     };
-    let total_high = tasks
+    let total_q1 = tasks
         .iter()
-        .filter(|t| t.priority == Priority::High)
+        .filter(|t| t.quadrant == Quadrant::Q1)
         .count();
-    if total_high == 0 {
+    if total_q1 == 0 {
         return 0.0;
     }
-    let unfinished_high = tasks
+    let unfinished_q1 = tasks
         .iter()
         .filter(|t| {
-            t.priority == Priority::High
+            t.quadrant == Quadrant::Q1
                 && matches!(t.status, TaskStatus::Skipped | TaskStatus::Todo)
         })
         .count();
-    unfinished_high as f64 / total_high as f64
+    unfinished_q1 as f64 / total_q1 as f64
 }
 
 /// 1 - (productive_minutes / total_minutes). Falls back to 0.5 with no data.
